@@ -1,2 +1,11 @@
 export * from './SQL'
-export * from './Table'
+export {
+  as,
+  columns,
+  getAlias,
+  getAs,
+  getQuote,
+  setAlias,
+  setQuote,
+  table
+} from './Table'
