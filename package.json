@@ -1,0 +1,37 @@
+{
+  "name": "sql-string-ts",
+  "version": "0.0.1",
+  "description": "Slightly easier SQL string queries",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "./dist/index.js",
+    "./dist/index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geovannyjs/sql-string-ts.git"
+  },
+  "keywords": [
+    "sql",
+    "query",
+    "postgres",
+    "pg",
+    "mysql",
+    "mysql2"
+  ],
+  "author": "Geovanny Silva",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/geovannyjs/sql-string-ts/issues"
+  },
+  "homepage": "https://github.com/geovannyjs/sql-string-ts#readme",
+  "devDependencies": {
+    "rollup": "^4.6.1",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-typescript2": "^0.36.0"
+  }
+}
