@@ -1,8 +1,8 @@
-import type { ColumnMeta, Columns } from './Table'
+import type { ColumnMeta, TableColumns } from './Table'
 import {
+  UNLIKELY_COLUMN_NAME,
   as,
-  columns,
-  name
+  columns
 } from './Table'
 
 import { Bind } from './Bind'
@@ -17,26 +17,37 @@ const bind = (v: any): Bind => new Bind(v)
 
 const empty: Fragment = SQL``
 
-const insert = <T>(table: Columns<T>, ...cols: Array<[ColumnMeta<T>, any]>): Fragment => SQL`insert into ${table} (`
-  .concat(interleave(SQL`, `, cols.map(c => SQL`${name(c[0])}`)).reduce((a, x) => a.concat(x), empty)).concat(') values (')
-  .concat(interleave(SQL`, `, cols.map(c => SQL`${bind(c[1])}`)).reduce((a, x) => a.concat(x), empty))
-  .concat(')')
+const insert = <T>(table: TableColumns<T>, ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
+
+  let q = table[UNLIKELY_COLUMN_NAME].quote || ''
+
+  return SQL`insert into ${table} (`
+    .concat(interleave(SQL`, `, cols.map(c => SQL`${q}${c[0].name}${q}`)).reduce((a, x) => a.concat(x), empty)).concat(') values (')
+    .concat(interleave(SQL`, `, cols.map(c => SQL`${bind(c[1])}`)).reduce((a, x) => a.concat(x), empty))
+    .concat(')')
+}
 
 const selectBuilder = <T>(cols: Array<ColumnMeta<T>>) => (fn: Function): Fragment => SQL`${cols.map(x => fn(x)).join(', ')}`
 
-const select = <T>(...cols: Array<ColumnMeta<T>>): Fragment => selectBuilder(cols)(name)
+const select = <T>(...cols: Array<ColumnMeta<T>>): Fragment => selectBuilder(cols)(x => x.toString())
 
-const selectAll = <T>(table: Columns<T>): Fragment => selectBuilder(columns(table))(name)
+const selectAll = <T>(table: TableColumns<T>): Fragment => selectBuilder(columns(table))(x => x.toString())
 
 const selectAs = <T>(...cols: Array<ColumnMeta<T>>): Fragment => selectBuilder(cols)(as)
 
-const selectAllAs = <T>(table: Columns<T>): Fragment => selectBuilder(columns(table))(as)
+const selectAllAs = <T>(table: TableColumns<T>): Fragment => selectBuilder(columns(table))(as)
 
-const update = <T>(table: Columns<T>, ...cols: Array<[ColumnMeta<T>, any]>): Fragment => SQL`update ${table} set `
-  .concat(interleave(SQL`, `, cols.map(x => SQL`${name(x[0])}=${bind(x[1])}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
+const update = <T>(table: TableColumns<T>, ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
+
+  let q = table[UNLIKELY_COLUMN_NAME].quote || ''
+
+  return SQL`update ${table} set `
+    .concat(interleave(SQL`, `, cols.map(x => SQL`${q}${x[0].name}${q}=${bind(x[1])}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
+}
 
 export {
   bind,
+  bind as b,
   empty,
   insert,
   SQL,
