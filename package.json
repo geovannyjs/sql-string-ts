@@ -10,7 +10,9 @@
     "README.md",
     "LICENSE"
   ],
-  "scripts": {},
+  "scripts": {
+    "build": "npx rollup --config --bundleConfigAsCjs"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/geovannyjs/sql-string-ts.git"
