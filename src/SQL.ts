@@ -23,7 +23,7 @@ const insert = <T>(table: TableColumns<T>, ...cols: Array<[ColumnMeta<T>, any]>)
 
   return SQL`insert into ${table} (`
     .concat(interleave(SQL`, `, cols.map(c => SQL`${q}${c[0].name}${q}`)).reduce((a, x) => a.concat(x), empty)).concat(') values (')
-    .concat(interleave(SQL`, `, cols.map(c => SQL`${bind(c[1])}`)).reduce((a, x) => a.concat(x), empty))
+    .concat(interleave(SQL`, `, cols.map(c => SQL`${c[1]}`)).reduce((a, x) => a.concat(x), empty))
     .concat(')')
 }
 
@@ -42,7 +42,7 @@ const update = <T>(table: TableColumns<T>, ...cols: Array<[ColumnMeta<T>, any]>)
   let q = table[UNLIKELY_COLUMN_NAME].quote || ''
 
   return SQL`update ${table} set `
-    .concat(interleave(SQL`, `, cols.map(x => SQL`${q}${x[0].name}${q}=${bind(x[1])}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
+    .concat(interleave(SQL`, `, cols.map(x => SQL`${q}${x[0].name}${q}=${x[1]}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
 }
 
 export {
