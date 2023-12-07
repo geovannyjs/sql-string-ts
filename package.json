@@ -1,7 +1,7 @@
 {
   "name": "sql-string-ts",
-  "version": "0.0.2",
-  "description": "Slightly easier SQL string queries",
+  "version": "0.0.3",
+  "description": "Slightly easier and safer SQL string queries",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
