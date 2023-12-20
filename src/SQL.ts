@@ -40,9 +40,10 @@ const selectAllAs = <T>(table: TableColumns<T>): Fragment => selectBuilder(colum
 
 const update = <T>(table: TableColumns<T>, ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
 
-  let q = table[UNLIKELY_COLUMN_NAME].quote || ''
+  let meta = table[UNLIKELY_COLUMN_NAME]
+  let q = meta.quote || ''
 
-  return SQL`update ${table} set `
+  return SQL`update ${meta.name} set `
     .concat(interleave(SQL`, `, cols.map(x => SQL`${q}${x[0].name}${q}=${x[1]}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
 }
 
