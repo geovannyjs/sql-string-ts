@@ -25,11 +25,32 @@ enum userColumns {
 
 const u = table({ name: 'user', columns: userColumns, quote: '`', alias: 'u' })
 
-const query = SQL`select ${u.name} from ${u} where ${u.id} > ${bind(5)} and ${u.active} = ${bind(true)}`
+const query1 = SQL`select ${u.name} from ${u} where ${u.id} > ${bind(5)} and ${u.active} = ${bind(true)}`
 
-query.text   // select `u`.`name` from `user` `u` where `u`.`id` > $1 and `u`.`active` = $2
-query.sql    // select `u`.`name` from `user` `u` where `u`.`id` > ? and `u`.`active` = ?
-query.values // [ 5, true ]
+query1.text   // select `u`.`name` from `user` `u` where `u`.`id` > $1 and `u`.`active` = $2
+query1.sql    // select `u`.`name` from `user` `u` where `u`.`id` > ? and `u`.`active` = ?
+query1.values // [ 5, true ]
+```
+
+## Concat
+
+You can use concat to combine queries.
+
+```js
+
+const id = 1
+const email = 'user@test.com'
+
+const base = SQL`select ${u.name} from ${u} where true`
+const whereId = SQL`${u.id} = ${bind(id)}`
+const whereEmail = SQL`${u.email} = ${bind(email)}`
+
+const result = base.concat(SQL` and ${whereId} and ${whereEmail}`)
+
+console.log(result.text)   // select `u`.`name` from `user` `u` where true and `u`.`id` = $1 and `u`.`email` = $2
+console.log(result.sql)    // select `u`.`name` from `user` `u` where true and `u`.`id` = ? and `u`.`email` = ?
+console.log(result.values) // [ 1, 'user@test.com' ]
+
 ```
 
 ## Insert
@@ -37,11 +58,11 @@ query.values // [ 5, true ]
 `insert` is a function to generate insert statements, to insert binded values is important to use the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
 
 ```js
-const query = insert(u, [u.name, b('User Name')], [u.email, b('user@email.com')], [u.active, b(true)], [u.inserted_at, 'NOW()'])
+const query2 = insert(u, [u.name, b('User Name')], [u.email, b('user@email.com')], [u.active, b(true)], [u.inserted_at, 'NOW()'])
 
-query.text   // insert into `user` `u` (`name`, `email`, `active`, `inserted_at`) values ($1, $2, $3, NOW())
-query.sql    // insert into `user` `u` (`name`, `email`, `active`, `inserted_at`) values (?, ?, ?, NOW())
-query.values // [ 'User Name', 'user@email.com', true ]
+query2.text   // insert into `user` (`name`, `email`, `active`, `inserted_at`) values ($1, $2, $3, NOW())
+query2.sql    // insert into `user` (`name`, `email`, `active`, `inserted_at`) values (?, ?, ?, NOW())
+query2.values // [ 'User Name', 'user@email.com', true ]
 
 ```
 
@@ -51,11 +72,11 @@ query.values // [ 'User Name', 'user@email.com', true ]
 
 ```js
 
-const query = update(u, [u.name, bind('User New Name')], [u.updated_at, 'NOW()'])
+const query3 = update(u, [u.name, bind('User New Name')], [u.updated_at, 'NOW()'])
 
-query.text  // update `user` `u` set `name`=$1, `updated_at`=NOW()
-query.sql   // update `user` `u` set `name`=?, `updated_at`=NOW()
-query.values // [ 'User New Name' ]
+query3.text  // update `user` set `name`=$1, `updated_at`=NOW()
+query3.sql   // update `user` set `name`=?, `updated_at`=NOW()
+query3.values // [ 'User New Name' ]
 ```
 
 ## Contributing
