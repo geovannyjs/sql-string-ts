@@ -19,9 +19,10 @@ const empty: Fragment = SQL``
 
 const insert = <T>(table: TableColumns<T>, ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
 
-  let q = table[UNLIKELY_COLUMN_NAME].quote || ''
+  let meta = table[UNLIKELY_COLUMN_NAME]
+  let q = meta.quote || ''
 
-  return SQL`insert into ${table} (`
+  return SQL`insert into ${meta.name} (`
     .concat(interleave(SQL`, `, cols.map(c => SQL`${q}${c[0].name}${q}`)).reduce((a, x) => a.concat(x), empty)).concat(') values (')
     .concat(interleave(SQL`, `, cols.map(c => SQL`${c[1]}`)).reduce((a, x) => a.concat(x), empty))
     .concat(')')
