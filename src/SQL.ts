@@ -22,7 +22,7 @@ const insert = <T>(table: TableColumns<T>, ...cols: Array<[ColumnMeta<T>, any]>)
   let meta = table[UNLIKELY_COLUMN_NAME]
   let q = meta.quote || ''
 
-  return SQL`insert into ${meta.name} (`
+  return SQL`insert into ${q}${meta.name}${q} (`
     .concat(interleave(SQL`, `, cols.map(c => SQL`${q}${c[0].name}${q}`)).reduce((a, x) => a.concat(x), empty)).concat(') values (')
     .concat(interleave(SQL`, `, cols.map(c => SQL`${c[1]}`)).reduce((a, x) => a.concat(x), empty))
     .concat(')')
