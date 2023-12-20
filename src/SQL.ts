@@ -43,7 +43,7 @@ const update = <T>(table: TableColumns<T>, ...cols: Array<[ColumnMeta<T>, any]>)
   let meta = table[UNLIKELY_COLUMN_NAME]
   let q = meta.quote || ''
 
-  return SQL`update ${meta.name} set `
+  return SQL`update ${q}${meta.name}${q} set `
     .concat(interleave(SQL`, `, cols.map(x => SQL`${q}${x[0].name}${q}=${x[1]}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
 }
 
