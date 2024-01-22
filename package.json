@@ -1,6 +1,6 @@
 {
   "name": "sql-string-ts",
-  "version": "0.0.5",
+  "version": "0.1.1",
   "description": "Slightly easier and safer SQL string queries",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -32,10 +32,10 @@
   },
   "homepage": "https://github.com/geovannyjs/sql-string-ts#readme",
   "devDependencies": {
-    "chai": "^4.3.10",
-    "mocha": "^10.2.0",
-    "rollup": "^4.6.1",
-    "rollup-plugin-dts": "^6.1.0",
-    "rollup-plugin-typescript2": "^0.36.0"
+    "chai": "4.3.10",
+    "mocha": "10.2.0",
+    "rollup": "4.6.1",
+    "rollup-plugin-dts": "6.1.0",
+    "rollup-plugin-typescript2": "0.36.0"
   }
 }
