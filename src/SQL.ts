@@ -37,7 +37,7 @@ const insert = <T extends Columns>(schema: Schema<T>, maybeConf: ApplyQuote | [C
     .concat(')')
 }
 
-const join = <T>(a: ColumnMeta<T>, b: ColumnMeta<T>): Fragment => SQL`join ${a.schema} on ${a} = ${b}`
+const join = <A, B>(a: ColumnMeta<A>, b: ColumnMeta<B>): Fragment => SQL`join ${a.schema} on ${a} = ${b}`
 
 const selectBuilder = <T>(cols: Array<ColumnMeta<T>>) => (fn: Function): Fragment => SQL`${cols.map(x => fn(x)).join(', ')}`
 
@@ -63,7 +63,7 @@ const selectAll = <T extends Columns>(schema: Schema<T>, maybeConf?: ApplySelect
       cs = [(maybeConf as ColumnMeta<T>), ...exclude]
     else conf = { ...conf, ...(maybeConf as ApplySelect) }
   }
-console.log(conf)
+
   let excs = cs.reduce((a, x) => { a[column(x, { prefix: true })] = true; return a }, {})
 
   return selectBuilder(columns(schema).filter(c => !excs[column(c, { prefix: true })]))(x => column(x, conf))
