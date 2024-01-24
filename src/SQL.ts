@@ -9,8 +9,10 @@ import {
 
 import { Bind } from './Bind'
 import { Fragment } from './Fragment'
-import { ApplyQuote } from './Apply'
+import { ApplyAs, ApplyPrefix, ApplyQuote } from './Apply'
 
+
+type ApplySelect = ApplyAs & ApplyPrefix & ApplyQuote
 
 const interleave = <T>(item: T, array: Array<T>): Array<T> => array.reduce<Array<T>>((acc, x, i, a) => (i == a.length - 1) ? acc.concat(x) : acc.concat(x, item), [])
 
@@ -29,16 +31,39 @@ const insert = <T extends Columns>(schema: Schema<T>, maybeConf: ApplyQuote | [C
   else conf = (maybeConf as ApplyQuote)
 
   return SQL`insert into ${table(schema, conf)} (`
-    .concat(interleave(SQL`, `, cs.map(c => SQL`${column(c[0], conf)}`)).reduce((a, x) => a.concat(x), empty)).concat(') values (')
+    .concat(interleave(SQL`, `, cs.map(c => SQL`${column(c[0], conf)}`)).reduce((a, x) => a.concat(x), empty))
+    .concat(') values (')
     .concat(interleave(SQL`, `, cs.map(c => SQL`${c[1]}`)).reduce((a, x) => a.concat(x), empty))
     .concat(')')
 }
 
 const selectBuilder = <T>(cols: Array<ColumnMeta<T>>) => (fn: Function): Fragment => SQL`${cols.map(x => fn(x)).join(', ')}`
 
-const select = <T>(...cols: Array<ColumnMeta<T>>): Fragment => selectBuilder(cols)(x => column(x))
+const select = <T>(maybeConf: ApplySelect | ColumnMeta<T>, ...cols: Array<ColumnMeta<T>>): Fragment => {
 
-const selectAll = <T extends Columns>(schema: Schema<T>): Fragment => selectBuilder(columns(schema))(x => column(x))
+  let conf: ApplySelect = { as: true, prefix: true, quote: true }
+  let cs = cols
+
+  if((maybeConf as ApplySelect).as === undefined && (maybeConf as ApplySelect).prefix === undefined && (maybeConf as ApplySelect).quote === undefined)
+    cs = [(maybeConf as ColumnMeta<T>), ...cols]
+  else conf = { ...conf, ...(maybeConf as ApplySelect) }
+
+  return selectBuilder(cs)(x => column(x, conf))
+}
+
+const selectAll = <T extends Columns>(schema: Schema<T>, maybeConf?: ApplySelect | ColumnMeta<T>, ...excs: Array<ColumnMeta<T>>): Fragment => {
+
+  let conf: ApplySelect = { as: true, prefix: true, quote: true }
+  let cs = excs
+
+  if(maybeConf) {
+    if((maybeConf as ApplySelect).as === undefined && (maybeConf as ApplySelect).prefix === undefined && (maybeConf as ApplySelect).quote === undefined)
+      cs = [(maybeConf as ColumnMeta<T>), ...excs]
+    else conf = { ...conf, ...(maybeConf as ApplySelect) }
+  }
+
+  return selectBuilder(columns(schema))(x => column(x, conf))
+}
 
 const update = <T extends Columns>(schema: Schema<T>, maybeConf: ApplyQuote | [ColumnMeta<T>, any], ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
 
