@@ -51,18 +51,20 @@ const select = <T>(maybeConf: ApplySelect | ColumnMeta<T>, ...cols: Array<Column
   return selectBuilder(cs)(x => column(x, conf))
 }
 
-const selectAll = <T extends Columns>(schema: Schema<T>, maybeConf?: ApplySelect | ColumnMeta<T>, ...excs: Array<ColumnMeta<T>>): Fragment => {
+const selectAll = <T extends Columns>(schema: Schema<T>, maybeConf?: ApplySelect | ColumnMeta<T>, ...exclude: Array<ColumnMeta<T>>): Fragment => {
 
   let conf: ApplySelect = { as: true, prefix: true, quote: true }
-  let cs = excs
+  let cs = exclude
 
   if(maybeConf) {
     if((maybeConf as ApplySelect).as === undefined && (maybeConf as ApplySelect).prefix === undefined && (maybeConf as ApplySelect).quote === undefined)
-      cs = [(maybeConf as ColumnMeta<T>), ...excs]
+      cs = [(maybeConf as ColumnMeta<T>), ...exclude]
     else conf = { ...conf, ...(maybeConf as ApplySelect) }
   }
+console.log(conf)
+  let excs = cs.reduce((a, x) => { a[column(x, { prefix: true })] = true; return a }, {})
 
-  return selectBuilder(columns(schema))(x => column(x, conf))
+  return selectBuilder(columns(schema).filter(c => !excs[column(c, { prefix: true })]))(x => column(x, conf))
 }
 
 const update = <T extends Columns>(schema: Schema<T>, maybeConf: ApplyQuote | [ColumnMeta<T>, any], ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
