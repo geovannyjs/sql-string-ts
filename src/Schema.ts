@@ -15,7 +15,7 @@ type SchemaConfig <T> = {
 
 type ColumnMeta <T> = {
   name: string
-  schema: SchemaConfig <T>
+  schema: Schema <T>
 }
 
 type Schema <T> = Record<keyof T, ColumnMeta<T>>
@@ -27,13 +27,13 @@ const UNLIKELY_COLUMN_NAME = '"!@#$%&*()-_=+\|,<.>;:/?'
 const config = <T>(schema: Schema<T>): SchemaConfig<T> => schema[UNLIKELY_COLUMN_NAME]
 
 const asBuilder = <T extends Columns>(col: ColumnMeta<T>): string => {
-  let m: SchemaConfig<T> = col.schema
+  let m: SchemaConfig<T> = config(col.schema)
   let prefix = m.alias || m.table
   return `${prefix}_${col.name}`
 }
 
 const column = <T extends Columns>(col: ColumnMeta<T>, cfg?: ApplyAs & ApplyPrefix & ApplyQuote): string => {
-  let m: SchemaConfig<T> = col.schema
+  let m: SchemaConfig<T> = config(col.schema)
   let q = cfg && cfg.quote === true && m.quote ? m.quote : ''
   let prefix = cfg && cfg.prefix === true ? `${q}${m.alias || m.table}${q}.` : ''
   return `${prefix}${q}${col.name}${q}` + ((cfg && cfg.as === true) ? ` as ${q}${asBuilder(col)}${q}` : '')
@@ -66,7 +66,7 @@ const schema = <T extends Columns>(cfg: SchemaConfig<T>): Schema<T> => {
     // save the column meta for each column
     built[x] = {
       name: String(x),
-      schema: cfg
+      schema: built
     } as ColumnMeta<T>
 
     // column toString
