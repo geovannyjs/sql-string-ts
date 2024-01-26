@@ -22,7 +22,7 @@ const bind = (v: any): Bind => new Bind(v)
 
 const empty: Fragment = SQL``
 
-const insert = <T extends Columns>(schema: Schema<T>, maybeConf: ApplyQuote | [ColumnMeta<T>, any], ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
+const insert = <T extends Columns>(maybeConf: ApplyQuote | [ColumnMeta<T>, any], ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
 
   let conf: ApplyQuote = { quote: true }
   let cs = cols
@@ -30,7 +30,9 @@ const insert = <T extends Columns>(schema: Schema<T>, maybeConf: ApplyQuote | [C
   if((maybeConf as ApplyQuote).quote === undefined) cs = [(maybeConf as [ColumnMeta<T>, any]), ...cols]
   else conf = (maybeConf as ApplyQuote)
 
-  return SQL`insert into ${table(schema, conf)} (`
+  if(!cs.length) throw new Error('You should pass at least one column')
+
+  return SQL`insert into ${table(cs[0][0].schema, conf)} (`
     .concat(interleave(SQL`, `, cs.map(c => SQL`${column(c[0], conf)}`)).reduce((a, x) => a.concat(x), empty))
     .concat(') values (')
     .concat(interleave(SQL`, `, cs.map(c => SQL`${c[1]}`)).reduce((a, x) => a.concat(x), empty))
@@ -69,7 +71,7 @@ const selectAll = <T extends Columns>(schema: Schema<T>, maybeConf?: ApplySelect
   return selectBuilder(columns(schema).filter(c => !excs[column(c, { prefix: true })]))(x => column(x, conf))
 }
 
-const update = <T extends Columns>(schema: Schema<T>, maybeConf: ApplyQuote | [ColumnMeta<T>, any], ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
+const update = <T extends Columns>(maybeConf: ApplyQuote | [ColumnMeta<T>, any], ...cols: Array<[ColumnMeta<T>, any]>): Fragment => {
 
   let conf: ApplyQuote = { quote: true }
   let cs = cols
@@ -77,7 +79,9 @@ const update = <T extends Columns>(schema: Schema<T>, maybeConf: ApplyQuote | [C
   if((maybeConf as ApplyQuote).quote === undefined) cs = [(maybeConf as [ColumnMeta<T>, any]), ...cols]
   else conf = (maybeConf as ApplyQuote)
 
-  return SQL`update ${table(schema, conf)} set `
+  if(!cs.length) throw new Error('You should pass at least one column')
+
+  return SQL`update ${table(cs[0][0].schema, conf)} set `
     .concat(interleave(SQL`, `, cs.map(x => SQL`${column(x[0], conf)}=${x[1]}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
 }
 
