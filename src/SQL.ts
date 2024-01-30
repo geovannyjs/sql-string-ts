@@ -41,15 +41,15 @@ const insert = <T extends Columns>(maybeConf: ApplyQuote | [ColumnMeta<T>, any],
 
 const join = <A, B>(a: ColumnMeta<A>, b: ColumnMeta<B>): Fragment => SQL`join ${a.schema} on ${a} = ${b}`
 
-const selectBuilder = <T>(cols: Array<ColumnMeta<T>>) => (fn: Function): Fragment => SQL`${cols.map(x => fn(x)).join(', ')}`
+const selectBuilder = (cols: Array<ColumnMeta<Columns>>) => (fn: Function): Fragment => SQL`${cols.map(x => fn(x)).join(', ')}`
 
-const select = <T>(maybeConf: ApplySelect | ColumnMeta<T>, ...cols: Array<ColumnMeta<T>>): Fragment => {
+const select = (maybeConf: ApplySelect | ColumnMeta<Columns>, ...cols: Array<ColumnMeta<Columns>>): Fragment => {
 
   let conf: ApplySelect = { as: true, prefix: true, quote: true }
   let cs = cols
 
   if((maybeConf as ApplySelect).as === undefined && (maybeConf as ApplySelect).prefix === undefined && (maybeConf as ApplySelect).quote === undefined)
-    cs = [(maybeConf as ColumnMeta<T>), ...cols]
+    cs = [(maybeConf as ColumnMeta<Columns>), ...cols]
   else conf = { ...conf, ...(maybeConf as ApplySelect) }
 
   return selectBuilder(cs)(x => column(x, conf))
