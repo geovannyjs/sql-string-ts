@@ -11,7 +11,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "npx rollup --config --bundleConfigAsCjs"
+    "build": "npx rollup --config --bundleConfigAsCjs",
+    "test": "cross-env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' mocha -r ts-node/register 'tests/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -32,10 +33,14 @@
   },
   "homepage": "https://github.com/geovannyjs/sql-string-ts#readme",
   "devDependencies": {
+    "@types/chai": "4.3.11",
+    "@types/mocha": "10.0.6",
     "chai": "4.3.10",
+    "cross-env": "7.0.3",
     "mocha": "10.2.0",
     "rollup": "4.6.1",
     "rollup-plugin-dts": "6.1.0",
-    "rollup-plugin-typescript2": "0.36.0"
+    "rollup-plugin-typescript2": "0.36.0",
+    "ts-node": "10.9.2"
   }
 }
