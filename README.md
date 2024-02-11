@@ -5,31 +5,37 @@
 
 A lib with some functions to make writing SQL strings easier and safer.
 
-This lib is based in the [sql-template-strings](https://www.npmjs.com/package/sql-template-strings), I decided to write this lib mainly because the `.append` method of `sql-template-strings` is not pure.
-
 Works with [mysql](https://www.npmjs.com/package/mysql), [mysql2](https://www.npmjs.com/package/mysql2) and [postgres](https://www.npmjs.com/package/pg)
 
 It is not an ORM or Query Builder, it just try to rely on Typescript types to make the sql strings safer.
 
 ```js
-import { table, SQL, bind } from 'sql-string-ts'
+import { schema, SQL, bind } from 'sql-string-ts'
 
 enum userColumns {
   id,
   name,
   email,
-  active,
+  password,
+  favorite_movie_id,
+  is_active,
   inserted_at,
   updated_at
 }
 
-const u = table({ name: 'user', columns: userColumns, quote: '`', alias: 'u' })
+const user = schema({ table: 'user', columns: userColumns, quote: '`', alias: 'u' })
 
-const query1 = SQL`select ${u.name} from ${u} where ${u.id} > ${bind(5)} and ${u.active} = ${bind(true)}`
+const query1 = SQL`select ${user.name} from ${user} where ${user.id} > ${bind(5)} and ${user.is_active} = ${bind(true)}`
 
-query1.text   // select `u`.`name` from `user` `u` where `u`.`id` > $1 and `u`.`active` = $2
-query1.sql    // select `u`.`name` from `user` `u` where `u`.`id` > ? and `u`.`active` = ?
-query1.values // [ 5, true ]
+/*
+
+query1 generated query:
+select `u`.`name` from `user` `u` where `u`.`id` > ? and `u`.`is_active` = ?
+
+query1 generated bind values:
+[ 5, true ]
+
+*/
 ```
 
 ## Concat
@@ -58,7 +64,7 @@ console.log(result.values) // [ 1, 'user@test.com' ]
 `insert` is a function to generate insert statements, to insert binded values is important to use the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
 
 ```js
-const query2 = insert(u, [u.name, b('User Name')], [u.email, b('user@email.com')], [u.active, b(true)], [u.inserted_at, 'NOW()'])
+const query2 = insert([u.name, b('User Name')], [u.email, b('user@email.com')], [u.active, b(true)], [u.inserted_at, 'NOW()'])
 
 query2.text   // insert into `user` (`name`, `email`, `active`, `inserted_at`) values ($1, $2, $3, NOW())
 query2.sql    // insert into `user` (`name`, `email`, `active`, `inserted_at`) values (?, ?, ?, NOW())
@@ -72,12 +78,17 @@ query2.values // [ 'User Name', 'user@email.com', true ]
 
 ```js
 
-const query3 = update(u, [u.name, bind('User New Name')], [u.updated_at, 'NOW()'])
+const query3 = update([u.name, bind('User New Name')], [u.updated_at, 'NOW()'])
 
 query3.text  // update `user` set `name`=$1, `updated_at`=NOW()
 query3.sql   // update `user` set `name`=?, `updated_at`=NOW()
 query3.values // [ 'User New Name' ]
 ```
 
+## Note
+
+This lib is based in the [sql-template-strings](https://www.npmjs.com/package/sql-template-strings), I decided to write this lib mainly because the `.append` method of `sql-template-strings` is not pure.
+
 ## Contributing
- - Pull requests are welcome.
+
+  - Pull requests are welcome.
