@@ -86,7 +86,7 @@ where `u`.`id` = ?
 
 ## Fragments
 
-#### concat
+**concat(fragment)**<br />
 You can use the concat method to combine queries fragments.
 ```js
 const id = 1
@@ -107,7 +107,7 @@ select `u`.`name` from `user` `u` where true and `u`.`id` = ? and `u`.`email` = 
 
 ## Functions
 
-#### table
+**table(schema, { alias: boolean, quote: boolean }?)**<br />
 Receives a schema an returns its table name.
 ```js
 table(user) // user
@@ -116,7 +116,9 @@ table(user, { quote: true }) // `user`
 table(user, { alias: true, quote: true }) // `user` `u`
 ```
 
-#### column
+<br />
+
+**column(column, { as: boolean, prefix: boolean, quote: boolean }?)**<br />
 Receives a column an returns its name.
 ```js
 column(user.email) // email
@@ -126,8 +128,10 @@ column(user.email, { quote: true }) // `email`
 column(user.email, { as: true, prefix: true, quote: true }) // `u`.`email` as `u_email`
 ```
 
-#### insert
-`insert` is a function to generate insert statements, to insert binded values is important to use the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
+<br />
+
+**insert([column, value]\*)**<br />
+`insert` is a variadic function to generate insert statements, to insert binded values is important to use the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
 ```js
 const q4 = insert([u.name, b('User Name')], [u.email, b('user@email.com')], [u.active, b(true)], [u.inserted_at, 'NOW()'])
 
@@ -138,8 +142,10 @@ insert into `user` (`name`, `email`, `active`, `inserted_at`) values (?, ?, ?, N
 [ 'User Name', 'user@email.com', true ]
 ```
 
-#### update
-`update` is a function to generate update statements, to update binded values is important to user the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
+<br />
+
+**update([column, value]\*)**<br />
+`update` is a variadic function to generate update statements, to update binded values is important to user the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
 
 ```js
 const q5 = update([u.name, bind('User New Name')], [u.updated_at, 'NOW()'])
