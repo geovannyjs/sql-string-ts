@@ -7,7 +7,7 @@ A lib with some functions to make writing SQL strings easier and safer.
 
 Works with [mysql](https://www.npmjs.com/package/mysql), [mysql2](https://www.npmjs.com/package/mysql2) and [postgres](https://www.npmjs.com/package/pg)
 
-It is not an ORM or Query Builder, it just try to rely on Typescript types to make the sql strings safer.
+It is not an ORM or Query Builder, it just try to rely on Typescript types to make the SQL strings safer.
 
 ```js
 import { schema, SQL, bind } from 'sql-string-ts'
@@ -25,25 +25,70 @@ enum userColumns {
 
 const user = schema({ table: 'user', columns: userColumns, quote: '`', alias: 'u' })
 
-const query1 = SQL`select ${user.name} from ${user} where ${user.id} > ${bind(5)} and ${user.is_active} = ${bind(true)}`
+const q1 = SQL`select ${user.name}
+from ${user}
+where ${user.id} > ${bind(5)} and ${user.is_active} = ${bind(true)}`
 
-/*
+// generated query
+select `u`.`name`
+from `user` `u`
+where `u`.`id` > ? and `u`.`is_active` = ?
 
-query1 generated query:
-select `u`.`name` from `user` `u` where `u`.`id` > ? and `u`.`is_active` = ?
-
-query1 generated bind values:
-[ 5, true ]
-
-*/
+// generated bind values
+[  5,  true  ]
 ```
 
-## Concat
-
-You can use concat to combine queries.
-
+So you can run the query with your favorite RDBMS/lib:
 ```js
+mysql.query(q1)
+// or
+pg.query(q1)
+```
 
+### A more complex example:
+```js
+enum movieColumns {
+  id,
+  name,
+  year,
+  director_id,
+  inserted_at,
+  updated_at
+}
+
+const movie = schema({ table: 'movie', columns: movieColumns, quote: '`', alias: 'm' })
+
+enum directorColumns {
+  id,
+  name,
+  inserted_at,
+  updated_at
+}
+
+const director = schema({ table: 'director', columns: directorColumns, quote: '`', alias: 'd' })
+
+const q2 = SQL`select ${user.name}, ${movie.name}, ${director.name}
+from ${user}
+left join ${movie} on ${movie.id} = ${user.favorite_movie_id}
+left join ${director} on ${director.id} = ${movie.director_id}
+where ${user.id} = ${bind(1)}
+
+// generated query
+select `u`.`name`, `m`.`name`, `d`.`name`
+from `user` `u`
+left join `movie` `m` on `m`.`id` = `u`.`favorite_movie_id`
+left join `director` `d` on `d`.`id` = `m`.`director_id`
+where `u`.`id` = ?
+
+// generated bind values
+[ 1 ]
+```
+
+## Fragments
+
+**concat**
+You can use the concat method to combine queries fragments.
+```js
 const id = 1
 const email = 'user@test.com'
 
@@ -51,38 +96,59 @@ const base = SQL`select ${u.name} from ${u} where true`
 const whereId = SQL`${u.id} = ${bind(id)}`
 const whereEmail = SQL`${u.email} = ${bind(email)}`
 
-const result = base.concat(SQL` and ${whereId} and ${whereEmail}`)
+const q3 = base.concat(SQL` and ${whereId} and ${whereEmail}`)
 
-console.log(result.text)   // select `u`.`name` from `user` `u` where true and `u`.`id` = $1 and `u`.`email` = $2
-console.log(result.sql)    // select `u`.`name` from `user` `u` where true and `u`.`id` = ? and `u`.`email` = ?
-console.log(result.values) // [ 1, 'user@test.com' ]
+// generated query
+select `u`.`name` from `user` `u` where true and `u`.`id` = ? and `u`.`email` = ?
 
+// generated bind values
+[ 1, 'user@test.com' ]
 ```
 
-## Insert
+## Functions
 
-`insert` is a function to generate insert statements, to insert binded values is important to use the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
-
+**table**
+Receives a schema an returns its table name.
 ```js
-const query2 = insert([u.name, b('User Name')], [u.email, b('user@email.com')], [u.active, b(true)], [u.inserted_at, 'NOW()'])
-
-query2.text   // insert into `user` (`name`, `email`, `active`, `inserted_at`) values ($1, $2, $3, NOW())
-query2.sql    // insert into `user` (`name`, `email`, `active`, `inserted_at`) values (?, ?, ?, NOW())
-query2.values // [ 'User Name', 'user@email.com', true ]
-
+table(user) // user
+table(user, { alias: true }) // user u
+table(user, { quote: true }) // `user`
+table(user, { alias: true, quote: true }) // `user` `u`
 ```
 
-## Update
+**column**
+Receives a column an returns its name.
+```js
+column(user.email) // email
+column(user.email, { as: true }) // email as u_email
+column(user.email, { prefix: true }) // u.email
+column(user.email, { quote: true }) // `email`
+column(user.email, { as: true, prefix: true, quote: true }) // `u`.`email` as `u_email`
+```
 
+**insert**
+`insert` is a function to generate insert statements, to insert binded values is important to use the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
+```js
+const q4 = insert([u.name, b('User Name')], [u.email, b('user@email.com')], [u.active, b(true)], [u.inserted_at, 'NOW()'])
+
+// generated query
+insert into `user` (`name`, `email`, `active`, `inserted_at`) values (?, ?, ?, NOW())
+
+// generated bind values
+[ 'User Name', 'user@email.com', true ]
+```
+
+**update**
 `update` is a function to generate update statements, to update binded values is important to user the function `bind` (or its alias `b`), otherwise values will be treated as raw values.
 
 ```js
+const q5 = update([u.name, bind('User New Name')], [u.updated_at, 'NOW()'])
 
-const query3 = update([u.name, bind('User New Name')], [u.updated_at, 'NOW()'])
+// generated query
+update `user` set `name`=?, `updated_at`=NOW()
 
-query3.text  // update `user` set `name`=$1, `updated_at`=NOW()
-query3.sql   // update `user` set `name`=?, `updated_at`=NOW()
-query3.values // [ 'User New Name' ]
+// generated bind values
+[ 'User New Name' ]
 ```
 
 ## Note
