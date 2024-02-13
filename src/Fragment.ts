@@ -5,7 +5,7 @@ class Fragment {
 
   name?: string
   // @ts-ignore
-  sql: () => string
+  //sql: () => string
   strings: Array<string> = []
   values: Array<any> = []
 
@@ -61,6 +61,11 @@ class Fragment {
     return r
   }
 
+  // for mysql and mysql2 modules
+  get sql() {
+    return this.strings.join('?')
+  }
+
   // for node-postgres module
   get text() {
     return this.strings.reduce((a, x, i) => a + '$' + i + x)
@@ -73,13 +78,5 @@ class Fragment {
   }
 
 }
-
-// for mysql and mysql2 modules
-Object.defineProperty(Fragment.prototype, 'sql', {
-  enumerable: true,
-  get() {
-    return this.strings.join('?')
-  }
-})
 
 export { Fragment }
