@@ -30,12 +30,14 @@ const insert = <T extends Columns>(maybeConf: ApplyQuote | [ColumnMeta<T>, any],
   if((maybeConf as ApplyQuote).quote === undefined) cs = [(maybeConf as [ColumnMeta<T>, any]), ...cols]
   else conf = (maybeConf as ApplyQuote)
 
-  if(!cs.length) throw new Error('You should pass at least one column')
+  let scs = cs.filter(c => c[1] !== undefined)
 
-  return SQL`insert into ${table(cs[0][0].schema, conf)} (`
-    .concat(interleave(SQL`, `, cs.map(c => SQL`${column(c[0], conf)}`)).reduce((a, x) => a.concat(x), empty))
+  if(!scs.length) throw new Error('You should pass at least one column')
+
+  return SQL`insert into ${table(scs[0][0].schema, conf)} (`
+    .concat(interleave(SQL`, `, scs.map(c => SQL`${column(c[0], conf)}`)).reduce((a, x) => a.concat(x), empty))
     .concat(') values (')
-    .concat(interleave(SQL`, `, cs.map(c => SQL`${c[1]}`)).reduce((a, x) => a.concat(x), empty))
+    .concat(interleave(SQL`, `, scs.map(c => SQL`${c[1]}`)).reduce((a, x) => a.concat(x), empty))
     .concat(')')
 }
 
@@ -79,10 +81,12 @@ const update = <T extends Columns>(maybeConf: ApplyQuote | [ColumnMeta<T>, any],
   if((maybeConf as ApplyQuote).quote === undefined) cs = [(maybeConf as [ColumnMeta<T>, any]), ...cols]
   else conf = (maybeConf as ApplyQuote)
 
-  if(!cs.length) throw new Error('You should pass at least one column')
+  let scs = cs.filter(c => c[1] !== undefined)
 
-  return SQL`update ${table(cs[0][0].schema, conf)} set `
-    .concat(interleave(SQL`, `, cs.map(x => SQL`${column(x[0], conf)}=${x[1]}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
+  if(!scs.length) throw new Error('You should pass at least one column')
+
+  return SQL`update ${table(scs[0][0].schema, conf)} set `
+    .concat(interleave(SQL`, `, scs.map(x => SQL`${column(x[0], conf)}=${x[1]}`)).reduce<Fragment>((a, x) => a.concat(x), empty))
 }
 
 export {
