@@ -18,7 +18,7 @@ const interleave = <T>(item: T, array: Array<T>): Array<T> => array.reduce<Array
 
 const SQL = (...pieces: Array<any>): Fragment => new Fragment(pieces[0], pieces.slice(1))
 
-const bind = (v: any): Bind => new Bind(v)
+const bind = (v: any): Bind | undefined => v === undefined ? undefined : new Bind(v)
 
 const empty: Fragment = SQL``
 
